@@ -13,6 +13,8 @@ fn main() {
         ("d04", aoc::d04),
         ("d05", aoc::d05),
         ("d06", aoc::d06),
+        ("d07", aoc::d07),
+        ("d08", aoc::d08),
     ]);
 
     let mut to_run : Vec<_> = days.iter().filter(|(s,_)| args.iter().any(|ss| s == ss)).collect();
@@ -33,20 +35,20 @@ fn main() {
             acc += now.elapsed().as_micros() as f64;
 
             if i == 0 {
-                print!("{}  part_1: {:12} part_2: {:12}", day, part_1, part_2);
+                print!("\x1b[92m{}\x1b[0m -- part_1: {:>10} - part_2: {:>14}", day.to_uppercase(), part_1, part_2);
             }
         }
 
         acc = acc / iter as f64;
         total_time += acc;
         if benchmark {
-            println!("{:.5}ms", acc / 1000.0);
+            println!(" - {:.5}ms", acc / 1000.0);
         } else {
             println!("");
         }
     }
 
     if benchmark {
-        println!("total elapsed time: {:.5}ms", total_time / 1000.0);
+        println!("{:41}\x1b[1m\x1b[96mTotal Time\x1b[0m: {:.5}ms", "", total_time / 1000.0);
     }
 }
