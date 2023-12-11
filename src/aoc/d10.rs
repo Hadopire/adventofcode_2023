@@ -88,11 +88,13 @@ pub fn solution(input: &str) -> (String, String) {
                 let start = idx;
                 x += 1;
 
-                while x <= maxx && map[y*width+x] == b'-' {
+                while x <= maxx && map[y * width + x] == b'-' {
                     x += 1;
                 }
 
-                if (map[start] == b'L' && map[y*width+x] == b'7') || (map[start] == b'F' && map[y*width+x] == b'J') {
+                if (map[start] == b'L' && map[y * width + x] == b'7')
+                    || (map[start] == b'F' && map[y * width + x] == b'J')
+                {
                     in_loop = !in_loop;
                 }
 
