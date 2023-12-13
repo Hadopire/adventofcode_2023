@@ -69,7 +69,7 @@ pub fn solution(input: &str) -> (String, String) {
         groups.push(split.1.split(',').map(|s| s.parse::<u16>().unwrap()).collect());
     }
 
-    let first = (0..records.len()).fold(0, |acc, i| {
+    let part_1 = (0..records.len()).fold(0, |acc, i| {
         let capacity = groups[i].len() * records[i].len() * *groups[i].iter().max().unwrap() as usize;
         let mut cache: HashMap<u64, u64> = HashMap::with_capacity(capacity * 3);
         return acc + count_ways(None, &mut records[i], &groups[i], &mut cache);
@@ -94,11 +94,11 @@ pub fn solution(input: &str) -> (String, String) {
         big_groups.push(group);
     }
 
-    let second = (0..big_records.len()).fold(0, |acc, i| {
+    let part_2 = (0..big_records.len()).fold(0, |acc, i| {
         let capacity = big_groups[i].len() * big_records[i].len() * *groups[i].iter().max().unwrap() as usize;
         let mut cache: HashMap<u64, u64> = HashMap::with_capacity(capacity);
         return acc + count_ways(None, &mut big_records[i], &big_groups[i], &mut cache)
     });
     
-    return (first.to_string(), second.to_string());
+    return (part_1.to_string(), part_2.to_string());
 }
