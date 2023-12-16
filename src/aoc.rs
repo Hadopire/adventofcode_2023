@@ -13,6 +13,7 @@ mod d12;
 mod d13;
 mod d14;
 mod d15;
+mod d16;
 
 pub use d01::solution as d01;
 pub use d02::solution as d02;
@@ -29,3 +30,4 @@ pub use d12::solution as d12;
 pub use d13::solution as d13;
 pub use d14::solution as d14;
 pub use d15::solution as d15;
+pub use d16::solution as d16;
