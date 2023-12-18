@@ -1,104 +1,62 @@
-use std::collections::HashMap;
+fn count_ways(record: &[u8], groups: &[usize]) -> usize {
+    let mut dp = vec![0usize; (record.len() + 1) * (groups.len() + 1)];
+    let mut max_group_len = vec![0usize; record.len()];
 
-// with the input record_len et groups_len are small numbers, so it's better to fit
-// the 4 values together in a 64bit number instead of using a tuple as the hash table key
-fn hash(spring: u8, current_group: u16, record_len: usize, groups_len: usize) -> u64 {
-    return (spring) as u64 | ((current_group as u64) << 16) | ((record_len as u64) << 32) | ((groups_len as u64) << 48);
-}
-
-fn count_ways(current_group: Option<u16>, record: &mut[u8], groups: &[u16], cache: &mut HashMap<u64, u64>) -> u64 {
-    if record.is_empty() {
-        match (current_group, groups.len()) {
-            (None, 0) => return 1,
-            (Some(n), 1) => return (n == groups[0]) as u64,
-            _ => return 0,
-        };
-    }
-
-    if let Some(n) = current_group {
-        if n > groups[0] {
-            return 0;
+    let mut next_sep = 0;
+    for i in 0..record.len() {
+        if record[i] == b'.' || (i != 0 && record[i - 1] == b'#') {
+            continue;
         }
+
+        if next_sep <= i {
+            next_sep = i + record[i..].iter().position(|&c| c == b'.').unwrap_or(record.len() - i);
+        }
+
+        max_group_len[i] = next_sep - i;
     }
 
-    let hash = hash(record[0], current_group.unwrap_or(u16::MAX), record.len(), groups.len());
-    if let Some(n) = cache.get(&hash) {
-        return *n;
-    }
+    let idx = |i: usize, j: usize| i * (groups.len() + 1) + j;
 
-    let n = match (record[0], current_group) {
-        (b'#', Some(n)) => count_ways(Some(n + 1), &mut record[1..], groups, cache),
-        (b'#', None) => {
-            if groups.is_empty() {
-                0
-            } else {
-                count_ways(Some(1), &mut record[1..], &groups, cache)
+    dp[0] = 1;
+    for (i, &char) in record.iter().enumerate() {
+        for (j, &group) in groups.iter().enumerate() {
+            if max_group_len[i] >= group && (i + group == record.len() || record[i + group] != b'#') {
+                dp[idx(std::cmp::min(record.len(), i + group + 1), j + 1)] += dp[idx(i,j)];
+            }
+            
+            if char != b'#' {
+                dp[idx(i + 1, j)] += dp[idx(i, j)];
             }
         }
-        (b'.', Some(n)) => {
-            if n < groups[0] {
-                0
-            } else {
-                count_ways(None, &mut record[1..], &groups[1..], cache)
-            }
+    
+        if char != b'#' {
+            dp[idx(i + 1, groups.len())] += dp[idx(i, groups.len())];
         }
-        (b'.', None) => count_ways(None, &mut record[1..], &groups, cache),
-        (b'?', _) => {
-            let mut n = 0;
-            record[0] = b'#';
-            n += count_ways(current_group, record, groups, cache);
-            record[0] = b'.';
-            n += count_ways(current_group, record, groups, cache);
-            record[0] = b'?';
-            n
-        },
-        _ => 0
-    };
+    }
 
-    cache.insert(hash, n);
-    return n;
+    return *dp.last().unwrap();
 }
 
 pub fn solution(input: &str) -> (String, String) {
-    let mut records : Vec<Vec<u8>> = vec![];
-    let mut groups : Vec<Vec<u16>> = vec![];
+    let mut part_1 = 0;
+    let mut part_2 = 0;
 
-    for line in input.split_terminator('\n') {
-        let split = line.split_once(' ').unwrap();
-        records.push(split.0.as_bytes().to_vec());
-        groups.push(split.1.split(',').map(|s| s.parse::<u16>().unwrap()).collect());
-    }
-
-    let part_1 = (0..records.len()).fold(0, |acc, i| {
-        let capacity = groups[i].len() * records[i].len() * *groups[i].iter().max().unwrap() as usize;
-        let mut cache: HashMap<u64, u64> = HashMap::with_capacity(capacity * 3);
-        return acc + count_ways(None, &mut records[i], &groups[i], &mut cache);
-    });
-
-    let mut big_records : Vec<Vec<u8>> = Vec::with_capacity(records.len());
-    let mut big_groups : Vec<Vec<u16>> = Vec::with_capacity(groups.len());
-
-    for i in 0..groups.len() {
-        let mut record : Vec<u8> = Vec::with_capacity(records[i].len() * 5 + 4);
-        for j in 0..5 {
-            if j != 0 {
-                record.push(b'?');
+    for (in_record, in_group) in input.lines().filter_map(|s| s.split_once(' ')) {
+        let record = in_record.as_bytes().to_vec();
+        let groups: Vec<_> = in_group.split(',').map(|s| s.parse::<usize>().unwrap()).collect();
+        let mut big_record = Vec::with_capacity(record.len() * 5 + 4);
+        let mut big_groups = Vec::with_capacity(groups.len() * 5 + 4);
+        for i in 0..5 {
+            big_record.extend_from_slice(&record);
+            big_groups.extend_from_slice(&groups);
+            if i < 4 {
+                big_record.push(b'?');
             }
-            record.extend(&records[i]);
         }
 
-        let mut group : Vec<u16> = Vec::with_capacity(groups[i].len() * 5);
-        (0..5).for_each(|_| group.extend(&groups[i]));
-
-        big_records.push(record);
-        big_groups.push(group);
+        part_1 += count_ways(&record, &groups);
+        part_2 += count_ways(&big_record, &big_groups);
     }
 
-    let part_2 = (0..big_records.len()).fold(0, |acc, i| {
-        let capacity = big_groups[i].len() * big_records[i].len() * *groups[i].iter().max().unwrap() as usize;
-        let mut cache: HashMap<u64, u64> = HashMap::with_capacity(capacity);
-        return acc + count_ways(None, &mut big_records[i], &big_groups[i], &mut cache)
-    });
-    
     return (part_1.to_string(), part_2.to_string());
 }
