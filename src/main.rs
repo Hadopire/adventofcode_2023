@@ -27,6 +27,7 @@ fn main() {
         ("d18", aoc::d18),
         ("d19", aoc::d19),
         ("d20", aoc::d20),
+        ("d21", aoc::d21),
     ]);
 
     let mut to_run : Vec<_> = days.iter().filter(|(s,_)| args.iter().any(|ss| s == ss)).collect();
