@@ -19,6 +19,7 @@ mod d18;
 mod d19;
 mod d20;
 mod d21;
+mod d22;
 
 pub use d01::solution as d01;
 pub use d02::solution as d02;
@@ -41,3 +42,4 @@ pub use d18::solution as d18;
 pub use d19::solution as d19;
 pub use d20::solution as d20;
 pub use d21::solution as d21;
+pub use d22::solution as d22;
